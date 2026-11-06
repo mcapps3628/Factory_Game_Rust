@@ -1,4 +1,5 @@
 mod build_menu;
+mod inventory_menu;
 
 use bevy::prelude::*;
 
@@ -15,5 +16,13 @@ impl Plugin for UiPlugin {
                     build_menu::update_money_text,
                 ),
             );
+        app.add_systems(Startup, inventory_menu::spawn_inventory_menu)
+            .add_systems(
+                Update,
+                (
+                    inventory_menu::handle_inventory_buttons,
+                    inventory_menu::highlight_selected,
+                ),
+            );    
     }
 }

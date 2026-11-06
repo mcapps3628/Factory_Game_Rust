@@ -77,6 +77,7 @@ pub fn place_tile(
     Ok(entity)
 }
 
+// Key selecton
 pub fn select_tile(keys: Res<ButtonInput<KeyCode>>, mut selected: ResMut<SelectedTile>) {
     if keys.just_pressed(KeyCode::Digit1) {
         selected.0 = TileType::Basic;

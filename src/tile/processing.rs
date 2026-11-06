@@ -16,6 +16,23 @@ pub struct Inventory {
     pub input: HashMap<ItemType, u32>,
     pub output: HashMap<ItemType, u32>,
 }
+impl Inventory {
+    pub fn try_insert_input(
+        &mut self, 
+        item_type: ItemType, 
+        amount: u32, 
+        recipe: &Recipe
+    ) -> bool {
+        let is_valid_input = recipe.inputs.iter().any(|(input_type, _)| *input_type == item_type);
+        
+        if !is_valid_input {
+            return false;
+        } else {
+            *self.input.entry(item_type).or_default() += amount;
+            true
+        }
+    }
+}
 
 // Runs in FixedUpdate.
 pub fn process(time: Res<Time>, mut query: Query<(&mut Processor, &mut Inventory)>) {
