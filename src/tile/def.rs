@@ -15,6 +15,7 @@ pub struct TileDef {
     pub cost: u32,
     pub color: Color,
     pub processor: Option<Recipe>, //optional to set a processor
+    pub belt_speed: Option<f32>,
 }
 
 // Tile type list
@@ -36,6 +37,7 @@ impl TileType {
                 cost: 10,
                 color: Color::srgb(0.4, 0.7, 1.0),
                 processor: None,
+                belt_speed: None,
             },
 
             TileType::Furnace => TileDef {
@@ -47,8 +49,9 @@ impl TileType {
                     outputs: &[(ItemType::IronPlate, 1)],
                     craft_time: 2.0,
                 }),
+                belt_speed: None,
             },
-            
+
         }
     }
 }

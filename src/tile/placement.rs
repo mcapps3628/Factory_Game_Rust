@@ -95,15 +95,15 @@ pub fn click_to_place(
     mut grid: ResMut<Grid>,
     mut money: ResMut<Money>,
     selected: Res<SelectedTile>,
-    buttons: Query<&Interaction, With<Button>>,
+    //buttons: Query<&Interaction, With<Button>>,
 ) {
     if !mouse.just_pressed(MouseButton::Left) {
         return;
     }
-    // Don't place a tile through a UI button
-    if buttons.iter().any(|i| *i != Interaction::None) {
-        return;
-    }
+    //TODO: Add button place-through check
+    //if buttons.iter().any(|i| *i != Interaction::None) {
+        //return;
+    //}
 
     let (camera, cam_t) = *camera;
     let Some(pos) = cursor_grid_pos(*window, camera, cam_t) else {

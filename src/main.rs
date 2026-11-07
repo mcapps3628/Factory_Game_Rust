@@ -5,16 +5,15 @@ use crate::{item::ItemType, player_inventory::PlayerInventory, player_inventory:
 mod economy;
 mod item;
 mod tile;
-mod ui;
 mod player_inventory;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, tile::TilePlugin, ui::UiPlugin))
+        .add_plugins((DefaultPlugins, tile::TilePlugin))
         .insert_resource(economy::Money(500))
         .insert_resource(PlayerInventory {
             items: HashMap::from_iter([
-                (ItemType::IronOre, 5),
+                (ItemType::IronOre, 15),
                 (ItemType::IronPlate, 2),
             ]),
         })

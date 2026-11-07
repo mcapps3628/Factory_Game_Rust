@@ -54,7 +54,7 @@ pub fn world_to_grid(world: Vec2) -> Option<IVec2> {
     Grid::in_bounds(pos).then_some(pos)
 }
 
-/// Window cursor -> grid cell. Shared by every tool that needs the hovered cell.
+// Window cursor -> grid cell. Shared by every tool that needs the hovered cell.
 pub fn cursor_grid_pos(
     window: &Window,
     camera: &Camera,
@@ -65,7 +65,7 @@ pub fn cursor_grid_pos(
     world_to_grid(world)
 }
 
-/// Draws a checkerboard so you can see the cells.
+// Draws a checkerboard so you can see the cells.
 pub fn spawn_grid_background(mut commands: Commands) {
     for y in 0..GRID_SIZE.y {
         for x in 0..GRID_SIZE.x {
