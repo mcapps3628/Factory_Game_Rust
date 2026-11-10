@@ -56,7 +56,7 @@ pub fn place_tile(
 
     let mut tile = commands.spawn((
         Tile { tile_type, pos },
-        Sprite::from_color(def.color, Vec2::splat(TILE_SIZE - 2.0)),
+        Sprite::from_color(def.color, Vec2::splat(TILE_SIZE - 2.0)), //TODO: Add Image Def Here
         Transform::from_translation(grid_to_world(pos).extend(0.0)),
     ));
 
