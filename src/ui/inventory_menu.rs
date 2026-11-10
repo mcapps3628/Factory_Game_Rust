@@ -6,11 +6,11 @@ use crate::item::ItemType;
 use crate::mode::PlayerMode;
 use crate::player_inventory::{PlayerInventory, SelectedItem};
 
-/// On each item row: which item it selects.
+/// Item Name Text
 #[derive(Component)]
 pub struct ItemButton(pub ItemType);
 
-/// On the count label inside a row: which item's count it shows.
+/// Item Count Text
 #[derive(Component)]
 pub struct ItemCountText(pub ItemType);
 
@@ -43,7 +43,7 @@ pub fn spawn_inventory_menu(mut commands: Commands) {
                 },
             ));
 
-            // One row per item type; counts are updated by update_counts
+            // One row per item type and counts are updated by update_counts
             for item in ItemType::ALL {
                 panel
                     .spawn((

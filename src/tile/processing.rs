@@ -27,7 +27,7 @@ pub struct Inventory {
     pub output: HashMap<ItemType, u32>,
 }
 
-/// Runs in FixedUpdate so production speed doesn't depend on frame rate.
+/// Runs in FixedUpdate
 pub fn process(time: Res<Time>, mut query: Query<(&mut Processor, &mut Inventory)>) {
     let dt = time.delta_secs();
 

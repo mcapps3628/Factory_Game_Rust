@@ -32,13 +32,11 @@ impl Plugin for UiPlugin {
     }
 }
 
-/// Put this on a panel's root node. The panel is shown only while the
-/// player is in that mode, and hidden otherwise.
+/// Panel root mode to switch modes on.
 #[derive(Component)]
 pub struct ModePanel(pub PlayerMode);
 
-/// Display::None removes a node from layout AND interaction, which is why
-/// it's used instead of Visibility::Hidden.
+/// Use Display::None to remove interaction too.
 fn sync_panels(
     state: Res<State<PlayerMode>>,
     mut panels: Query<(&ModePanel, &mut Node)>,
