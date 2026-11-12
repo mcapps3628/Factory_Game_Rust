@@ -8,9 +8,9 @@ mod tile;
 mod ui;
 mod sell;
 
+use crate::sell::click_to_sell;
 use item::ItemType;
 use player_inventory::{PlayerInventory, SelectedItem};
-use crate::sell::click_to_sell;
 
 fn main() {
     App::new()

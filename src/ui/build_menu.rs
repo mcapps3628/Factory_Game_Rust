@@ -41,7 +41,7 @@ pub fn spawn_build_menu(mut commands: Commands) {
                         row_gap: Val::Px(2.0),
                         ..default()
                     },
-                    BackgroundColor(def.color),
+                    BackgroundColor(Color::WHITE), //TODO: Change to image
                 ))
                     // The observer asks for its own resource; it can't borrow from this system
                     .observe(move |_: On<Activate>, mut selected: ResMut<SelectedTile>| {
@@ -78,7 +78,7 @@ pub fn highlight_tiles(
         return;
     }
     for (button, mut bg) in &mut buttons {
-        let color = button.0.def().color;
+        let color = Color::BLACK; //TODO: Change to texture
         bg.0 = if button.0 == selected.0 {
             color
         } else {

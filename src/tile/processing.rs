@@ -4,9 +4,10 @@ use bevy::prelude::*;
 
 use super::def::Recipe;
 use crate::item::ItemType;
+use crate::tile::grid::TILE_SIZE;
 
 /// A miner stops producing once its output buffer holds this many.
-const OUTPUT_CAP: u32 = 10;
+const OUTPUT_CAP: u32 = 1;
 
 #[derive(Component)]
 pub struct Processor {
@@ -25,6 +26,11 @@ pub struct Producer {
 pub struct Inventory {
     pub input: HashMap<ItemType, u32>,
     pub output: HashMap<ItemType, u32>,
+}
+
+#[derive(Component)]
+pub struct OutputText {
+    pub timer: Timer,
 }
 
 /// Runs in FixedUpdate
@@ -58,14 +64,23 @@ pub fn process(time: Res<Time>, mut query: Query<(&mut Processor, &mut Inventory
     }
 }
 
-pub fn produce(time: Res<Time>, mut query: Query<(&mut Producer, &mut Inventory)>) {
-    for (mut producer, mut inv) in &mut query {
+pub fn produce(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(&mut Producer, &mut Inventory, &Transform)>,
+) {
+    for (mut producer, mut inv, transform) in &mut query {
         producer.timer.tick(time.delta());
-        if producer.timer.just_finished() {
-            let stored = inv.output.entry(producer.item).or_default();
-            if *stored < OUTPUT_CAP {
-                *stored += 1;
-            }
+        if !producer.timer.just_finished() {
+            continue;
         }
+
+        let stored = inv.output.entry(producer.item).or_default();
+        if *stored >= OUTPUT_CAP {
+            continue; // buffer full: nothing produced, so no popup
+        }
+        *stored += 1;
+
+        //spawn output text
     }
 }

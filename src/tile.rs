@@ -11,7 +11,7 @@ pub use placement::SelectedTile;
 
 use bevy::prelude::*;
 
-use crate::mode::{cursor_not_over_ui, PlayerMode};
+use crate::mode::{PlayerMode, cursor_not_over_ui};
 pub(crate) use crate::tile::conveyor::{Direction, PlaceDirection};
 
 pub struct TilePlugin;

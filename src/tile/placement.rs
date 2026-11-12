@@ -1,3 +1,4 @@
+use bevy::input::keyboard::Key::ColorF2Yellow;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
@@ -40,6 +41,7 @@ pub fn place_tile(
     tile_type: TileType,
     pos: IVec2,
     direction: Direction,
+    asset_server: Res<AssetServer>,
 ) -> Result<Entity, PlaceError> {
     if !Grid::in_bounds(pos) {
         return Err(PlaceError::OutOfBounds);
@@ -56,27 +58,34 @@ pub fn place_tile(
 
     let mut tile = commands.spawn((
         Tile { tile_type, pos },
-        Sprite::from_color(def.color, Vec2::splat(TILE_SIZE - 2.0)), //TODO: Add Image Def Here
+        Sprite {
+            image: asset_server.load(def.texture_path),
+            custom_size: Some(Vec2::new(TILE_SIZE, TILE_SIZE)),
+            ..default()
+        },
         Transform::from_translation(grid_to_world(pos).extend(0.0)),
     ));
 
     // Each behavior in the definition adds its components
+    // Place processor
     if let Some(recipe) = def.processor {
         tile.insert((
-            Processor {
-                recipe,
-                progress: 0.0,
+            Sprite {
+                image: asset_server.load(def.texture_path),
+                custom_size: Some(Vec2::new(TILE_SIZE, TILE_SIZE)),
+                ..default()
             },
             Inventory::default(),
         ));
     }
 
+    // Place conveyor
     if let Some(speed) = def.conveyor_speed {
         tile.insert(Conveyor { direction, speed });
         // A small bright block on the exit edge shows which way the belt faces
         tile.with_children(|parent| {
             parent.spawn((
-                Sprite::from_color(Color::srgb(0.9, 0.8, 0.3), Vec2::splat(TILE_SIZE * 0.2)),
+                Sprite::from_color(Color::WHITE, Vec2::splat(2.0)),
                 Transform::from_translation(
                     (direction.delta().as_vec2() * TILE_SIZE * 0.3).extend(0.1),
                 ),
@@ -109,6 +118,7 @@ pub fn click_to_place(
     mut money: ResMut<Money>,
     selected: Res<SelectedTile>,
     direction: Res<PlaceDirection>,
+    asset_server: Res<AssetServer>,
 ) {
     if !mouse.just_pressed(MouseButton::Left) {
         return;
@@ -126,6 +136,7 @@ pub fn click_to_place(
         selected.0,
         pos,
         direction.0,
+        asset_server,
     ) {
         info!("Can't place tile: {e:?}");
     }

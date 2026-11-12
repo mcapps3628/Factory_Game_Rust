@@ -22,7 +22,7 @@ pub struct ProducerDef {
 pub struct TileDef {
     pub name: &'static str,
     pub cost: u32,
-    pub color: Color, //TODO: Change to image.
+    pub texture_path: &'static str, //TODO: Change to image.
     pub processor: Option<Recipe>,
     pub conveyor_speed: Option<f32>, // tiles per second
     pub producer: Option<ProducerDef>,
@@ -33,7 +33,7 @@ impl TileDef {
     const BASE: TileDef = TileDef {
         name: "",
         cost: 0,
-        color: Color::WHITE, //TODO: Change to image.
+        texture_path: "", //TODO: Change to image.
         processor: None,
         conveyor_speed: None,
         producer: None,
@@ -63,14 +63,14 @@ impl TileType {
             TileType::Basic => TileDef {
                 name: "Basic",
                 cost: 10,
-                color: Color::srgb(0.4, 0.7, 1.0), //TODO: Change to image.
+                texture_path: "tiles/basic.png", //TODO: Change to image.
                 ..TileDef::BASE
             },
 
             TileType::Furnace => TileDef {
                 name: "Furnace",
                 cost: 50,
-                color: Color::srgb(1.0, 0.5, 0.2), //TODO: Change to image.
+                texture_path: "tiles/furnace.png", //TODO: Change to image.
                 processor: Some(Recipe {
                     inputs: &[(ItemType::IronOre, 1)],
                     outputs: &[(ItemType::IronPlate, 1)],
@@ -82,7 +82,7 @@ impl TileType {
             TileType::Conveyor => TileDef {
                 name: "Conveyor",
                 cost: 2,
-                color: Color::srgb(0.25, 0.25, 0.30), //TODO: Change to image.
+                texture_path: "tiles/conveyor.png", //TODO: Change to image & update conveyor image.
                 conveyor_speed: Some(1.5),
                 ..TileDef::BASE
             },
@@ -90,7 +90,7 @@ impl TileType {
             TileType::Miner => TileDef {
                 name: "Miner",
                 cost: 40,
-                color: Color::srgb(0.55, 0.35, 0.20), //TODO: Change to image.
+                texture_path: "tiles/miner.png", //TODO: Change to image.
                 producer: Some(ProducerDef {
                     item: ItemType::IronOre,
                     interval: 1.5,

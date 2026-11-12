@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 pub const GRID_SIZE: IVec2 = IVec2::new(16, 16);
-pub const TILE_SIZE: f32 = 32.0;
+pub const TILE_SIZE: f32 = 48.0;
 
 #[derive(Resource)]
 pub struct Grid {
