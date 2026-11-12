@@ -1,6 +1,7 @@
 {
   "name": "Graphical Rust Desktop",
-  "image": "://microsoft.com",
+  "image": "mcr.microsoft.com/devcontainers/rust:latest"
+,
   "features": {
     "ghcr.io/devcontainers/features/desktop-lite:1": {}
   },
