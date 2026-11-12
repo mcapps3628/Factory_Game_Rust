@@ -1,11 +1,12 @@
 {
-  "name": "Rust with Desktop",
+  "name": "Graphical Rust Desktop",
   "image": "://microsoft.com",
   "features": {
     "ghcr.io/devcontainers/features/desktop-lite:1": {}
   },
-  "forwardPorts": [6080],
+  "forwardPorts":,
   "runArgs": ["--init", "--shm-size=1g"],
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y pkg-config libx11-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libgl1-mesa-dev libasound2-dev libudev-dev",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -16,3 +17,4 @@
     }
   }
 }
+
