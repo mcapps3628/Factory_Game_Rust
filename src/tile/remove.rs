@@ -38,7 +38,7 @@ pub fn remove_tile(
     }
 
     commands.entity(entity).despawn();
-    grid.clear(pos);
+        grid.clear_entity(entity); // Clears all grid spots with the entity
     Ok(())
 }
 

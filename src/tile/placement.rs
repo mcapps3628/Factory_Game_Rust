@@ -40,13 +40,14 @@ pub fn place_tile(
     money: &mut Money,
     tile_type: TileType,
     pos: IVec2,
+    size: IVec2,
     direction: Direction,
     asset_server: Res<AssetServer>,
 ) -> Result<Entity, PlaceError> {
     if !Grid::in_bounds(pos) {
         return Err(PlaceError::OutOfBounds);
     }
-    if grid.get(pos).is_some() {
+    if !grid.is_rect_free(pos, size) {
         return Err(PlaceError::Occupied);
     }
 
@@ -56,14 +57,19 @@ pub fn place_tile(
     }
     money.0 -= def.cost; // only after every check has passed
 
+    let world_pos = grid_to_world(pos);
+
+    // Calculate the center offset for multi-sized tiles so they align with the grid footprint
+
     let mut tile = commands.spawn((
         Tile { tile_type, pos },
         Sprite {
             image: asset_server.load(def.texture_path),
-            custom_size: Some(Vec2::new(TILE_SIZE, TILE_SIZE)),
+            custom_size: Some(Vec2::new(size.x as f32 * TILE_SIZE, size.y as f32 * TILE_SIZE)),
             ..default()
         },
-        Transform::from_translation(grid_to_world(pos).extend(0.0)),
+        // Offset the transform so the sprite aligns correctly with the grid origin
+        Transform::from_translation(world_pos.extend(0.0)),
     ));
 
     // Each behavior in the definition adds its components
@@ -104,7 +110,7 @@ pub fn place_tile(
     }
 
     let entity = tile.id();
-    grid.set(pos, entity);
+    grid.set_rect(pos, size, entity);
     Ok(entity)
 }
 
@@ -128,6 +134,7 @@ pub fn click_to_place(
     let Some(pos) = cursor_grid_pos(*window, camera, cam_t) else {
         return;
     };
+    let size = IVec2::from(selected.0.def().size);
 
     if let Err(e) = place_tile(
         &mut commands,
@@ -135,6 +142,7 @@ pub fn click_to_place(
         &mut money,
         selected.0,
         pos,
+        size,
         direction.0,
         asset_server,
     ) {

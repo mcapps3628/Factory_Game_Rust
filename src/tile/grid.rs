@@ -29,6 +29,30 @@ impl Grid {
         Self::index(pos).and_then(|i| self.cells[i])
     }
 
+    pub fn is_rect_free(&self, origin: IVec2, size: IVec2) -> bool {
+        for y in 0..size.y {
+            for x in 0..size.x {
+                let pos = origin + IVec2::new(x, y);
+                // If any cell within the rectangle is occupied, placement fails
+                if self.get(pos).is_some() {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+
+    pub fn set_rect(&mut self, origin: IVec2, size: IVec2, entity: Entity) {
+        for y in 0..size.y {
+            for x in 0..size.x {
+                let cell_pos = origin + IVec2::new(x, y);
+                if let Some(i) = Self::index(cell_pos) {
+                    self.cells[i] = Some(entity);
+                }
+            }
+        }
+    }
+
     pub fn set(&mut self, pos: IVec2, entity: Entity) {
         if let Some(i) = Self::index(pos) {
             self.cells[i] = Some(entity);
@@ -39,6 +63,16 @@ impl Grid {
     pub fn clear(&mut self, pos: IVec2) {
         if let Some(i) = Self::index(pos) {
             self.cells[i] = None;
+        }
+    }
+
+    /// Clears all grid cells in a given rectangular area (sets them to None)
+    #[allow(dead_code)]
+    pub fn clear_entity(&mut self, entity: Entity) {
+        for cell in self.cells.iter_mut() {
+            if *cell == Some(entity) {
+                *cell = None;
+            }
         }
     }
 }
