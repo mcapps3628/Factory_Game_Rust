@@ -1,18 +1,26 @@
-use bevy::input::keyboard::Key::ColorF2Yellow;
+use std::f32::consts::FRAC_PI_2;
+
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use super::conveyor::{Conveyor, Direction, PlaceDirection};
 use super::def::TileType;
+use super::direction::{Direction};
 use super::grid::{cursor_grid_pos, grid_to_world, Grid, TILE_SIZE};
 use super::processing::{Inventory, Processor, Producer};
 use crate::economy::Money;
+use crate::tile::belt::Belt;
+use crate::tile::port::{NeedsLink, Ports};
+use crate::tile::seller::Seller;
 
 // Per-instance data for every placed tile.
 #[derive(Component)]
 pub struct Tile {
     pub tile_type: TileType,
+    /// Bottom-left cell of the footprint.
     pub pos: IVec2,
+    /// Footprint after rotation (a 1x2 tile facing South is 2x1).
+    pub size: IVec2,
+    pub rotation: Direction,
 }
 
 // Which tile the player currently has selected for placing.
@@ -25,6 +33,17 @@ impl Default for SelectedTile {
     }
 }
 
+/// Which way the next placed tile will face. Rotated with R.
+#[derive(Resource, Default)]
+pub struct PlaceDirection(pub Direction);
+
+pub fn rotate_placement(keys: Res<ButtonInput<KeyCode>>, mut dir: ResMut<PlaceDirection>) {
+    if keys.just_pressed(KeyCode::KeyR) {
+        dir.0 = dir.0.rotate_cw();
+        info!("Placing facing {:?}", dir.0);
+    }
+}
+
 #[derive(Debug)]
 pub enum PlaceError {
     OutOfBounds,
@@ -33,72 +52,72 @@ pub enum PlaceError {
 }
 
 /// Pure placement logic: no input, no UI, no modes.
-/// `direction` only matters for tiles that have one (conveyors).
+/// `pos` is the bottom-left cell of the footprint after rotation.
 pub fn place_tile(
     commands: &mut Commands,
     grid: &mut Grid,
     money: &mut Money,
+    asset_server: &AssetServer,
     tile_type: TileType,
     pos: IVec2,
-    size: IVec2,
-    direction: Direction,
-    asset_server: Res<AssetServer>,
+    rotation: Direction,
 ) -> Result<Entity, PlaceError> {
-    if !Grid::in_bounds(pos) {
+    let def = tile_type.def();
+
+    // The footprint depends on rotation, so work it out here, not in the caller
+    let size = Direction::rotate_size(def.size, rotation);
+
+    // Check BOTH corners, otherwise a tall tile can hang off the grid
+    if !Grid::in_bounds(pos) || !Grid::in_bounds(pos + size - IVec2::ONE) {
         return Err(PlaceError::OutOfBounds);
     }
     if !grid.is_rect_free(pos, size) {
         return Err(PlaceError::Occupied);
     }
-
-    let def = tile_type.def();
     if money.0 < def.cost {
         return Err(PlaceError::CantAfford);
     }
     money.0 -= def.cost; // only after every check has passed
 
+    // Center of the footprint, so the sprite lines up with the cells it covers
     let world_pos = grid_to_world(pos);
+    let offset = (size.as_vec2() - Vec2::ONE) / 2.0 * TILE_SIZE;
+    let final_pos = world_pos + offset;
 
-    // Calculate the center offset for multi-sized tiles so they align with the grid footprint
+    // Art is drawn facing East. Clockwise is a NEGATIVE angle in Bevy.
+    let angle = -(rotation.quarter_turns() as f32) * FRAC_PI_2;
 
     let mut tile = commands.spawn((
-        Tile { tile_type, pos },
+        Tile {
+            tile_type,
+            pos,
+            size,
+            rotation,
+        },
         Sprite {
             image: asset_server.load(def.texture_path),
-            custom_size: Some(Vec2::new(size.x as f32 * TILE_SIZE, size.y as f32 * TILE_SIZE)),
+            // Use the UNROTATED size here: the transform's rotation does the turning
+            custom_size: Some(def.size.as_vec2() * TILE_SIZE),
             ..default()
         },
-        // Offset the transform so the sprite aligns correctly with the grid origin
-        Transform::from_translation(world_pos.extend(0.0)),
+        Transform::from_translation(final_pos.extend(0.0))
+            .with_rotation(Quat::from_rotation_z(angle)),
     ));
 
     // Each behavior in the definition adds its components
+
     // Place processor
     if let Some(recipe) = def.processor {
         tile.insert((
-            Sprite {
-                image: asset_server.load(def.texture_path),
-                custom_size: Some(Vec2::new(TILE_SIZE, TILE_SIZE)),
-                ..default()
+            Processor {
+                recipe,
+                progress: 0.0,
             },
             Inventory::default(),
         ));
     }
 
-    // Place conveyor
-    if let Some(speed) = def.conveyor_speed {
-        tile.insert(Conveyor { direction, speed });
-        // A small bright block on the exit edge shows which way the belt faces
-        tile.with_children(|parent| {
-            parent.spawn((
-                Sprite::from_color(Color::WHITE, Vec2::splat(2.0)),
-                Transform::from_translation(
-                    (direction.delta().as_vec2() * TILE_SIZE * 0.3).extend(0.1),
-                ),
-            ));
-        });
-    }
-
+    // Place producer
     if let Some(producer) = def.producer {
         tile.insert((
             Producer {
@@ -107,6 +126,22 @@ pub fn place_tile(
             },
             Inventory::default(),
         ));
+    }
+
+    // Place belt
+    if let Some(speed) = def.conveyor_speed {
+        tile.insert(Belt {
+            speed,
+            items: Vec::new(),
+        });
+    }
+
+    if !def.ports.is_empty() {
+        tile.insert((Ports::from_defs(&def.ports, pos, def.size, rotation), NeedsLink));
+    }
+
+    if def.seller {
+        tile.insert(Seller);
     }
 
     let entity = tile.id();
@@ -134,17 +169,15 @@ pub fn click_to_place(
     let Some(pos) = cursor_grid_pos(*window, camera, cam_t) else {
         return;
     };
-    let size = IVec2::from(selected.0.def().size);
 
     if let Err(e) = place_tile(
         &mut commands,
         &mut grid,
         &mut money,
+        &asset_server,
         selected.0,
         pos,
-        size,
         direction.0,
-        asset_server,
     ) {
         info!("Can't place tile: {e:?}");
     }

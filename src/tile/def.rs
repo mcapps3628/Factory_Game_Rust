@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 
 use crate::item::ItemType;
+use crate::tile::direction::Direction;
+use crate::tile::port::{PortDef, PortKind};
 
 /// A crafting recipe. Data is shared among every tile.
 #[derive(Debug, Clone, Copy)]
@@ -26,15 +28,7 @@ pub enum PortDirection {
     West,
 }
 
-/// Port definition
-#[derive(Clone, Debug)]
-pub struct PortDef {
-    pub local_coords: IVec2,
-    pub direction: PortDirection, // Which way the port faces/connects
-    pub is_output: bool,
-}
-
-/// Everything that is true of a tile *type* (not of one placed instance).
+/// Everything that is true of a tile type (not of one placed instance).
 /// A tile gets behaviors by having them set to Some(..).
 pub struct TileDef {
     pub name: &'static str,
@@ -43,8 +37,9 @@ pub struct TileDef {
     pub size: IVec2,
     pub ports: Vec<PortDef>,
     pub processor: Option<Recipe>,
-    pub conveyor_speed: Option<f32>, // tiles per second
     pub producer: Option<ProducerDef>,
+    pub conveyor_speed: Option<f32>,
+    pub seller: bool,
 }
 
 impl TileDef {
@@ -56,8 +51,9 @@ impl TileDef {
         size: IVec2::new(1,1),
         ports: Vec::new(),
         processor: None,
-        conveyor_speed: None,
         producer: None,
+        conveyor_speed: None,
+        seller: false,
     };
 }
 
@@ -65,17 +61,23 @@ impl TileDef {
 pub enum TileType {
     Basic,
     Furnace,
-    Conveyor,
-    Miner,
+    IronMine,
+    CoalMine,
+    Belt,
+    WireMaker,
+    Seller,
 }
 
 impl TileType {
     /// Every tile type.
-    pub const ALL: [TileType; 4] = [
+    pub const ALL: [TileType; 7] = [
         TileType::Basic,
         TileType::Furnace,
-        TileType::Conveyor,
-        TileType::Miner,
+        TileType::IronMine,
+        TileType::CoalMine,
+        TileType::Belt,
+        TileType::WireMaker,
+        TileType::Seller,
     ];
 
     pub fn def(self) -> TileDef {
@@ -93,30 +95,89 @@ impl TileType {
                 cost: 50,
                 texture_path: "tiles/furnace.png",
                 processor: Some(Recipe {
-                    inputs: &[(ItemType::IronOre, 1)],
-                    outputs: &[(ItemType::IronPlate, 1)],
-                    craft_time: 2.0,
+                    inputs: &[(ItemType::IronOre, 1), (ItemType::Coal, 1)],
+                    outputs: &[(ItemType::IronIngot, 1)],
+                    craft_time: 4.0,
                 }),
-                size: IVec2::new(1, 2),
+                ports: vec![
+                    PortDef { local: IVec2::ZERO, facing: Direction::West, kind: PortKind::Input },
+                    PortDef { local: IVec2::new(0, 1), facing: Direction::West, kind: PortKind::Input },
+                    PortDef { local: IVec2::new(1, 0), facing: Direction::East, kind: PortKind::Output },
+                ],
+                size: IVec2::new(2, 2),
                 ..TileDef::BASE
             },
 
-            TileType::Conveyor => TileDef {
-                name: "Conveyor",
-                cost: 2,
-                texture_path: "tiles/conveyor.png",
-                conveyor_speed: Some(1.5),
-                ..TileDef::BASE
-            },
-
-            TileType::Miner => TileDef {
-                name: "Miner",
+            TileType::IronMine => TileDef {
+                name: "Iron Mine",
                 cost: 40,
                 texture_path: "tiles/miner.png",
                 producer: Some(ProducerDef {
                     item: ItemType::IronOre,
-                    interval: 1.5,
+                    interval: 4.0,
                 }),
+                ports: vec![
+                    PortDef { local: IVec2::new(0, 0), facing: Direction::South, kind: PortKind::Output },
+                ],
+                size: IVec2::new(1, 2),
+                ..TileDef::BASE
+            },
+
+            TileType::CoalMine => TileDef {
+                name: "Coal Mine",
+                cost: 20,
+                texture_path: "tiles/miner.png",
+                producer: Some(ProducerDef {
+                    item: ItemType::Coal,
+                    interval: 2.0,
+                }),
+                ports: vec![
+                    PortDef { local: IVec2::new(0, 0), facing: Direction::South, kind: PortKind::Output },
+                ],
+                size: IVec2::new(1, 2),
+                ..TileDef::BASE
+            },
+
+            TileType::Belt => TileDef {
+                name: "Belt",
+                cost: 5,
+                texture_path: "tiles/conveyor.png",
+                conveyor_speed: Some(1.0),
+                ports: vec![
+                    PortDef { local: IVec2::ZERO, facing: Direction::West,  kind: PortKind::Input },
+                    PortDef { local: IVec2::ZERO, facing: Direction::North, kind: PortKind::Input },
+                    PortDef { local: IVec2::ZERO, facing: Direction::South, kind: PortKind::Input },
+                    PortDef { local: IVec2::ZERO, facing: Direction::East,  kind: PortKind::Output },
+                ],
+                ..TileDef::BASE
+            },
+
+            TileType::WireMaker => TileDef {
+                name: "Wire Maker",
+                cost: 50,
+                texture_path: "tiles/basic.png",
+                processor: Some(Recipe {
+                    inputs: &[(ItemType::IronIngot, 1)],
+                    outputs: &[(ItemType::IronWire, 1)],
+                    craft_time: 2.0,
+                }),
+                ports: vec![
+                    PortDef { local: IVec2::ZERO, facing: Direction::West, kind: PortKind::Input },
+                    PortDef { local: IVec2::ZERO, facing: Direction::East, kind: PortKind::Output },
+                ],
+                size: IVec2::new(1, 2),
+                ..TileDef::BASE
+            },
+
+            TileType::Seller => TileDef {
+                name: "Seller",
+                cost: 30,
+                texture_path: "tiles/basic.png",
+                ports: vec![
+                    PortDef { local: IVec2::ZERO, facing: Direction::West,  kind: PortKind::Input },
+                ],
+                size: IVec2::new(2, 2),
+                seller: true,
                 ..TileDef::BASE
             },
         }

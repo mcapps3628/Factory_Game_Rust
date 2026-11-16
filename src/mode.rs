@@ -1,8 +1,6 @@
 use bevy::prelude::*;
 use bevy::window::{CursorIcon, PrimaryWindow, SystemCursorIcon};
 
-use crate::tile::{Direction, PlaceDirection, SelectedTile, TileType};
-
 #[derive(States, Default, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PlayerMode {
     #[default]
@@ -55,29 +53,17 @@ pub fn update_cursor(
     mut commands: Commands,
     window: Single<Entity, With<PrimaryWindow>>,
     state: Res<State<PlayerMode>>,
-    selected: Res<SelectedTile>,
-    direction: Res<PlaceDirection>,
 ) {
     // Only do work when something that affects the icon changed
-    if !(state.is_changed() || selected.is_changed() || direction.is_changed()) {
+    if !state.is_changed() {
         return;
     }
 
     let icon = match state.get() {
-        PlayerMode::Build if selected.0 == TileType::Conveyor => direction_cursor(direction.0),
         PlayerMode::Build => SystemCursorIcon::Pointer,
         PlayerMode::Inventory => SystemCursorIcon::Pointer,
         PlayerMode::Normal => SystemCursorIcon::Default,
     };
 
     commands.entity(*window).insert(CursorIcon::from(icon));
-}
-
-fn direction_cursor(d: Direction) -> SystemCursorIcon {
-    match d {
-        Direction::North => SystemCursorIcon::NResize,
-        Direction::East => SystemCursorIcon::EResize,
-        Direction::South => SystemCursorIcon::SResize,
-        Direction::West => SystemCursorIcon::WResize,
-    }
 }
