@@ -7,6 +7,7 @@ pub enum PlayerMode {
     Build,
     Normal,
     Inventory,
+    Power,
 }
 
 pub struct ModePlugin;
@@ -41,6 +42,9 @@ fn change_mode(
     if keys.just_pressed(KeyCode::Escape) {
         next.set(PlayerMode::Normal);
     }
+    if keys.just_pressed(KeyCode::KeyP) {
+        next.set(toggle(PlayerMode::Power));
+    }
 }
 
 pub fn cursor_not_over_ui(interactions: Query<&Interaction>) -> bool {
@@ -63,6 +67,7 @@ pub fn update_cursor(
         PlayerMode::Build => SystemCursorIcon::Pointer,
         PlayerMode::Inventory => SystemCursorIcon::Pointer,
         PlayerMode::Normal => SystemCursorIcon::Default,
+        PlayerMode::Power => SystemCursorIcon::Crosshair,
     };
 
     commands.entity(*window).insert(CursorIcon::from(icon));

@@ -11,6 +11,9 @@ mod seller;
 
 pub use def::TileType;
 pub use placement::SelectedTile;
+pub use grid::Grid;
+pub use placement::Tile;
+pub use grid::*;
 
 use bevy::prelude::*;
 

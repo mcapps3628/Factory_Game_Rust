@@ -1,6 +1,7 @@
 mod build_menu;
 mod hud;
 mod inventory_menu;
+mod power_menu;
 
 use bevy::prelude::*;
 use crate::mode;
