@@ -7,6 +7,7 @@ mod player_inventory;
 mod tile;
 mod ui;
 mod sell;
+mod power;
 
 use crate::sell::click_to_sell;
 use item::ItemType;
