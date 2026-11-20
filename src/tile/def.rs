@@ -40,6 +40,7 @@ pub struct TileDef {
     pub producer: Option<ProducerDef>,
     pub conveyor_speed: Option<f32>,
     pub seller: bool,
+    pub power_wire_offset: Option<Vec2>,
 }
 
 impl TileDef {
@@ -54,6 +55,7 @@ impl TileDef {
         producer: None,
         conveyor_speed: None,
         seller: false,
+        power_wire_offset: Some(Vec2::ZERO),
     };
 }
 
@@ -61,16 +63,25 @@ impl TileDef {
 pub enum TileType {
     Basic,
     Furnace,
+
+    //Extractors
     IronMine,
     CoalMine,
+
     Belt,
+
+    //Processors
     WireMaker,
     Seller,
+
+    //Power
+    PowerPole,
+    BasicGenerator,
 }
 
 impl TileType {
     /// Every tile type.
-    pub const ALL: [TileType; 7] = [
+    pub const ALL: [TileType; 9] = [
         TileType::Basic,
         TileType::Furnace,
         TileType::IronMine,
@@ -78,6 +89,8 @@ impl TileType {
         TileType::Belt,
         TileType::WireMaker,
         TileType::Seller,
+        TileType::PowerPole,
+        TileType::BasicGenerator,
     ];
 
     pub fn def(self) -> TileDef {
@@ -178,6 +191,23 @@ impl TileType {
                 ],
                 size: IVec2::new(2, 2),
                 seller: true,
+                ..TileDef::BASE
+            },
+
+            TileType::PowerPole => TileDef {
+                name: "Power Pole",
+                cost: 10,
+                texture_path: "tiles/basic.png",
+                size: IVec2::new(1, 1),
+                power_wire_offset: Some(Vec2::new(0.0, 1.0)),
+                ..TileDef::BASE
+            },
+
+            TileType::BasicGenerator => TileDef {
+                name: "Basic Generator",
+                cost: 50,
+                texture_path: "tiles/basic.png",
+                size: IVec2::new(2, 3),
                 ..TileDef::BASE
             },
         }

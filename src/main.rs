@@ -20,6 +20,7 @@ fn main() {
             mode::ModePlugin,
             tile::TilePlugin,
             ui::UiPlugin,
+            power::PowerPlugin,
         ))
         .insert_resource(economy::Money(500))
         .init_resource::<PlayerInventory>()

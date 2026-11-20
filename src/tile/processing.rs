@@ -4,6 +4,7 @@ use bevy::prelude::*;
 
 use super::def::Recipe;
 use crate::item::ItemType;
+use crate::power::def::Powered;
 use crate::tile::grid::TILE_SIZE;
 
 /// A miner stops producing once its output buffer holds this many.
@@ -34,7 +35,10 @@ pub struct OutputText {
 }
 
 /// Runs in FixedUpdate
-pub fn process(time: Res<Time>, mut query: Query<(&mut Processor, &mut Inventory)>) {
+pub fn process(
+    time: Res<Time>,
+    mut query: Query<(&mut Processor, &mut Inventory), With<Powered>>,
+) {
     let dt = time.delta_secs();
 
     for (mut processor, mut inv) in &mut query {

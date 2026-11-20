@@ -4,7 +4,7 @@ mod placement;
 mod processing;
 mod remove;
 mod direction;
-mod port;
+pub(crate) mod port;
 mod belt;
 mod flow;
 mod seller;
